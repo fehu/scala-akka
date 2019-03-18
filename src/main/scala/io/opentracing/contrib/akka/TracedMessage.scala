@@ -13,19 +13,51 @@
  */
 package io.opentracing.contrib.akka
 
+import scala.language.implicitConversions
+
 import io.opentracing.Span
 import io.opentracing.util.GlobalTracer
 
-class TracedMessage[T](val message: T, val activeSpan: Span) {
-
+trait TracedMessage {
+  def message: Any = this
+  val activeSpan: Span
 }
 
 object TracedMessage {
-  def wrap(message: Any): Any = wrap(GlobalTracer.get.activeSpan, message)
+  case class Wrap[T](override val message: T, activeSpan: Span) extends TracedMessage
 
-  def wrap[T](activeSpan: Span, message: T): Any = {
+  def wrap(message: Any)(implicit activeSpan: MaybeSpan): Any =
+    wrap(activeSpan.toOption.orElse(globalSpan()).orNull, message).merge
+
+  def wrap[T](activeSpan: Span, message: T): Either[T, Wrap[T]] = {
     if (message == null) throw new IllegalArgumentException("message cannot be null")
-    if (activeSpan == null) return message
-    new TracedMessage[T](message, activeSpan)
+    Either.cond(activeSpan ne null, Wrap[T](message, activeSpan), message)
   }
+
+  sealed trait MaybeSpan {
+    def toOption: Option[Span]
+  }
+  case class ActiveSpan protected (span: Span) extends MaybeSpan {
+    def toOption: Option[Span] = Some(span)
+  }
+  object ActiveSpan {
+    def apply(span: Span): ActiveSpan = {
+      require(span ne null, "ActiveSpan cannot be null")
+      new ActiveSpan(span)
+    }
+  }
+
+  case object NoSpan extends MaybeSpan {
+    def toOption: Option[Span] = None
+  }
+  object MaybeSpan extends MaybeSpanLowPriorityImplicits {
+    implicit def apply(span: Span): MaybeSpan         = Option(span).map(ActiveSpan(_)).getOrElse(NoSpan)
+    implicit def apply(span: Option[Span]): MaybeSpan = apply(span.orNull)
+  }
+
+  protected trait MaybeSpanLowPriorityImplicits {
+    implicit def defaultNoSpan: MaybeSpan = NoSpan
+  }
+
+  def globalSpan(): Option[Span] = Option(GlobalTracer.get.activeSpan)
 }

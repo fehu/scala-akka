@@ -19,7 +19,7 @@ class SpanNullCheckActor extends TracedAbstractActor {
 
   override def receive: Receive = {
     case _: Any =>
-      sender().tell(tracer().scopeManager.active == null, self)
+      sender().tell(activeScope().isEmpty, self)
   }
 }
 

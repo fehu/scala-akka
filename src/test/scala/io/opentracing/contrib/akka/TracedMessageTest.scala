@@ -37,7 +37,7 @@ class TracedMessageTest extends FunSuite with BeforeAndAfter {
 
   test("testExplicitNoActiveSpan") {
     val originalMessage = "foo"
-    val message = TracedMessage.wrap(null, originalMessage)
+    val message = TracedMessage.wrap(null, originalMessage).merge
     assert(message == originalMessage)
   }
 
@@ -58,9 +58,9 @@ class TracedMessageTest extends FunSuite with BeforeAndAfter {
     message = TracedMessage.wrap(originalMessage)
     scope.close()
 
-    assert(message.isInstanceOf[TracedMessage[_]])
+    assert(message.isInstanceOf[TracedMessage])
 
-    val tracedMessage = message.asInstanceOf[TracedMessage[_]]
+    val tracedMessage = message.asInstanceOf[TracedMessage]
     assert(span == tracedMessage.activeSpan)
     assert(originalMessage == tracedMessage.message)
   }
@@ -69,10 +69,10 @@ class TracedMessageTest extends FunSuite with BeforeAndAfter {
     val originalMessage = "foo"
     val span = mockTracer.buildSpan("one").start
 
-    val message = TracedMessage.wrap(span, originalMessage)
-    assert(message.isInstanceOf[TracedMessage[_]])
+    val message = TracedMessage.wrap(span, originalMessage).merge
+    assert(message.isInstanceOf[TracedMessage])
 
-    val tracedMessage = message.asInstanceOf[TracedMessage[_]]
+    val tracedMessage = message.asInstanceOf[TracedMessage]
     assert(span == tracedMessage.activeSpan)
     assert(originalMessage == tracedMessage.message)
   }

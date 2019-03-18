@@ -19,8 +19,8 @@ class SpanCheckActor extends TracedAbstractActor {
 
   override def receive: Receive = {
     case x: Any =>
-      val scope = tracer().scopeManager.active
-      val isSameSpan = scope != null && scope.span == x
+      val scope = activeScope()
+      val isSameSpan = scope.exists(_.span == x)
       sender().tell(isSameSpan, self)
   }
 }

@@ -15,28 +15,26 @@ package io.opentracing.contrib.akka
 
 import akka.AroundReceiveActor
 import akka.actor.Actor
-import io.opentracing.Tracer
+import io.opentracing.contrib.akka.TracedMessage.MaybeSpan
+import io.opentracing.{ Scope, ScopeManager }
 import io.opentracing.util.GlobalTracer
 
 
 trait TracedAbstractActor extends Actor with AroundReceiveActor {
+  protected def finishSpanOnClose: Boolean = false
+  implicit lazy val maybeSpan: MaybeSpan = MaybeSpan(activeScope().map(_.span()))
 
-  override protected def traceBeforeReceive(receive: Receive, msg: Any): Unit = {
-    if (!msg.isInstanceOf[TracedMessage[_]]) {
+  override protected def traceBeforeReceive(receive: Receive, msg: Any): Unit = msg match {
+    case traced: TracedMessage =>
+      scopeManager().activate(traced.activeSpan, finishSpanOnClose)
+      superAroundReceive(receive, traced.message)
+    case _ =>
       superAroundReceive(receive, msg)
-      return
-    }
-
-    val tracedMessage = msg.asInstanceOf[TracedMessage[_]]
-    tracer().scopeManager.activate(tracedMessage.activeSpan, false)
-    superAroundReceive(receive, tracedMessage.message)
   }
 
-  override protected def traceAfterReceive(receive: Receive, msg: Any): Unit = {
-    if (tracer().scopeManager().active() != null) {
-      GlobalTracer.get().scopeManager().active().close()
-    }
-  }
+  override protected def traceAfterReceive(receive: Receive, msg: Any): Unit =
+    activeScope().foreach(_.close())
 
-  def tracer(): Tracer = GlobalTracer.get()
+  protected def scopeManager(): ScopeManager = GlobalTracer.get().scopeManager()
+  protected def activeScope(): Option[Scope] = Option(scopeManager().active())
 }
