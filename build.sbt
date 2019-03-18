@@ -1,6 +1,10 @@
-ThisBuild / scalaVersion     := "2.11.12"
+ThisBuild / scalaVersion     := scala212
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "fehu"
+ThisBuild / organization     := "com.github.fehu"
+ThisBuild / crossScalaVersions := scala212 :: scala211 :: Nil
+
+lazy val scala211 = "2.11.12"
+lazy val scala212 = "2.12.8"
 
 
 lazy val root = (project in file("."))
