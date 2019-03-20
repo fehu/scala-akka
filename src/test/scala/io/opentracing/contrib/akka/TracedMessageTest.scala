@@ -13,6 +13,7 @@
  */
 package io.opentracing.contrib.akka
 
+import com.gihub.fehu.opentracing.NullableImplicits.Span._
 import io.opentracing.mock.MockTracer
 import io.opentracing.mock.MockTracer.Propagator
 import io.opentracing.util.{AutoFinishScopeManager, GlobalTracer, GlobalTracerTestUtil}

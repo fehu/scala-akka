@@ -14,6 +14,7 @@ lazy val root = (project in file("."))
       "io.opentracing" % "opentracing-util" % opentracingVersion,
       "io.opentracing" % "opentracing-mock" % opentracingVersion,
       "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+      "com.github.fehu"   %% "opentracing-scala" % opentracingScalaVersion,
       "io.opentracing" % "opentracing-util" % opentracingVersion % "test" classifier "tests",
       "org.awaitility" % "awaitility-scala" % "3.0.0" % "test",
       "org.scalatest" %% "scalatest" % "3.0.4" % "test"
@@ -21,6 +22,7 @@ lazy val root = (project in file("."))
   )
 
 lazy val opentracingVersion = "0.31.0"
+lazy val opentracingScalaVersion = "0.1.0-SNAPSHOT"
 lazy val akkaVersion = "2.5.9"
 
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.

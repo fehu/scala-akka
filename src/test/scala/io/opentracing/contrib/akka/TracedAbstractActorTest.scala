@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import akka.pattern.Patterns.ask
 import akka.util.Timeout
+import com.gihub.fehu.opentracing.NullableImplicits.Span._
 import io.opentracing.mock.MockTracer
 import io.opentracing.util.{GlobalTracer, GlobalTracerTestUtil, ThreadLocalScopeManager}
 import org.scalatest.{BeforeAndAfter, FunSuite}
