@@ -15,14 +15,12 @@ package io.opentracing.contrib.akka
 
 import akka.AroundReceiveActor
 import akka.actor.Actor
-import io.opentracing.contrib.akka.TracedMessage.MaybeSpan
 import io.opentracing.{ Scope, ScopeManager }
 import io.opentracing.util.GlobalTracer
 
 
 trait TracedAbstractActor extends Actor with AroundReceiveActor {
   protected def finishSpanOnClose: Boolean = false
-  implicit lazy val maybeSpan: MaybeSpan = MaybeSpan(activeScope().map(_.span()))
 
   override protected def traceBeforeReceive(receive: Receive, msg: Any): Unit = msg match {
     case traced: TracedMessage =>
