@@ -9,7 +9,7 @@ lazy val scala212 = "2.12.8"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "opentracing-scala-akka",
+    name := "opentracing-contrib-scala-akka-fork",
     libraryDependencies ++= Seq(
       "io.opentracing" % "opentracing-util" % opentracingVersion,
       "io.opentracing" % "opentracing-mock" % opentracingVersion,
