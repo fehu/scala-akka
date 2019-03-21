@@ -15,7 +15,7 @@ package io.opentracing.contrib.akka
 
 import akka.AroundReceiveActor
 import akka.actor.Actor
-import io.opentracing.{ Scope, ScopeManager }
+import io.opentracing.{ Scope, ScopeManager, Tracer }
 import io.opentracing.util.GlobalTracer
 
 
@@ -23,8 +23,8 @@ trait TracedAbstractActor extends Actor with AroundReceiveActor {
   protected def finishSpanOnClose: Boolean = false
 
   override protected def traceBeforeReceive(receive: Receive, msg: Any): Unit = msg match {
-    case traced: TracedMessage =>
-      scopeManager().activate(traced.activeSpan, finishSpanOnClose)
+    case traced: TracedMessage if traced.activeSpan ne null =>
+      scopeManager().foreach(_.activate(traced.activeSpan, finishSpanOnClose))
       superAroundReceive(receive, traced.message)
     case _ =>
       superAroundReceive(receive, msg)
@@ -33,6 +33,7 @@ trait TracedAbstractActor extends Actor with AroundReceiveActor {
   override protected def traceAfterReceive(receive: Receive, msg: Any): Unit =
     activeScope().foreach(_.close())
 
-  protected def scopeManager(): ScopeManager = GlobalTracer.get().scopeManager()
-  protected def activeScope(): Option[Scope] = Option(scopeManager().active())
+  protected def globalTracer(): Option[Tracer] = Option(GlobalTracer.get())
+  protected def scopeManager(): Option[ScopeManager] = globalTracer().flatMap(Option apply _.scopeManager())
+  protected def activeScope(): Option[Scope] = scopeManager.flatMap(Option apply _.active())
 }
